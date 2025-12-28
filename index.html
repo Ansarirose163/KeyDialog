@@ -3,126 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bad Boy Firebase Admin</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
+    <title>Bad Boy Key Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-        h1 { text-align: center; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #667eea; }
-        .section { margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 5px solid #667eea; }
-        button { background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px; }
-        button:hover { background: #5a67d8; }
-        .btn-success { background: #48bb78; }
-        .btn-danger { background: #f56565; }
-        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; }
-        .status { padding: 10px; margin: 10px 0; border-radius: 5px; display: none; }
-        .success { background: #c6f6d5; color: #22543d; }
-        .error { background: #fed7d7; color: #742a2a; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        .login-box {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #444;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn-success {
+            background: linear-gradient(to right, #48bb78, #38a169);
+        }
+        .btn-danger {
+            background: linear-gradient(to right, #f56565, #e53e3e);
+        }
+        .btn-info {
+            background: linear-gradient(to right, #4299e1, #3182ce);
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+        }
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        .dashboard {
+            display: none;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #667eea;
+        }
+        .card h3 {
+            margin-bottom: 15px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h3 i {
+            color: #667eea;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-top: 5px solid #667eea;
+        }
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .id-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .id-item.expired {
+            border-left-color: #f56565;
+            opacity: 0.7;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            .id-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Bad Boy Firebase Admin</h1>
-        
         <!-- Login Section -->
-        <div id="loginSection" class="section">
-            <h2>🔐 Admin Login</h2>
-            <div>
-                <label>Email:</label>
-                <input type="email" id="loginEmail" value="admin@badboy.com" placeholder="Enter email">
+        <div id="loginSection">
+            <div class="header">
+                <h1><i class="fas fa-key"></i> Bad Boy Key Manager</h1>
+                <p>Admin Panel - Secure Key Management System</p>
             </div>
-            <div>
-                <label>Password:</label>
-                <input type="password" id="loginPassword" value="Admin@1234" placeholder="Enter password">
+            
+            <div class="login-box">
+                <h2><i class="fas fa-lock"></i> Admin Login</h2>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="admin@example.com" value="admin@badboy.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password" value="Admin@1234">
+                </div>
+                <button class="btn" onclick="loginUser()">
+                    <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                </button>
+                <div class="footer">
+                    <p>© 2024 Bad Boy App | Secure Admin System</p>
+                </div>
             </div>
-            <button onclick="loginUser()" class="btn-success">Login</button>
         </div>
         
-        <!-- Admin Panel (Hidden Initially) -->
-        <div id="adminPanel" style="display: none;">
-            <div style="text-align: right;">
-                <span id="userEmail"></span>
-                <button onclick="logoutUser()" class="btn-danger">Logout</button>
+        <!-- Admin Dashboard (Initially Hidden) -->
+        <div id="adminDashboard" class="dashboard">
+            <div class="header">
+                <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+                <div style="text-align: right; margin-top: 10px;">
+                    <span id="userEmail" style="color: #666;"></span>
+                    <button class="btn btn-danger" onclick="logoutUser()" style="width: auto; padding: 8px 15px; margin-left: 10px;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
             </div>
             
-            <!-- Dashboard -->
-            <div class="section">
-                <h2>📊 Dashboard</h2>
-                <div id="stats"></div>
-                <button onclick="fetchData()">Refresh Data</button>
-                <button onclick="showAddId()" class="btn-success">➕ Add New ID</button>
+            <!-- Status Message -->
+            <div id="statusMessage" class="status"></div>
+            
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="totalIds">0</div>
+                    <div class="label">Total Keys</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="validIds">0</div>
+                    <div class="label">Active Keys</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="expiredIds">0</div>
+                    <div class="label">Expired Keys</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="todayExpiry">0</div>
+                    <div class="label">Expire Today</div>
+                </div>
             </div>
             
-            <!-- Add ID Form -->
-            <div id="addIdSection" class="section" style="display: none;">
-                <h2>➕ Add Android ID</h2>
-                <input type="text" id="newId" placeholder="Android ID">
-                <input type="text" id="newExpiry" placeholder="DD/MM/YYYY">
-                <button onclick="addId()" class="btn-success">Add ID</button>
-                <button onclick="hideAddId()">Cancel</button>
+            <!-- Quick Actions -->
+            <div class="card">
+                <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn" onclick="showAddKeyForm()">
+                        <i class="fas fa-plus"></i> Add New Key
+                    </button>
+                    <button class="btn btn-success" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                    <button class="btn btn-danger" onclick="cleanExpired()">
+                        <i class="fas fa-trash"></i> Clean Expired
+                    </button>
+                    <button class="btn btn-info" onclick="showSettings()">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                </div>
             </div>
             
-            <!-- ID List -->
-            <div class="section">
-                <h2>📋 All IDs</h2>
-                <div id="idList">Loading...</div>
+            <!-- Add Key Form -->
+            <div id="addKeyForm" class="card" style="display: none;">
+                <h3><i class="fas fa-key"></i> Add New Activation Key</h3>
+                <div class="form-group">
+                    <label>Key / Android ID</label>
+                    <input type="text" id="newKey" placeholder="Enter activation key or Android ID">
+                </div>
+                <div class="form-group">
+                    <label>Expiry Date (DD/MM/YYYY)</label>
+                    <input type="text" id="newExpiry" placeholder="25/12/2024">
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        Quick Set: 
+                        <a href="#" onclick="setToday()">Today</a> | 
+                        <a href="#" onclick="setTomorrow()">Tomorrow</a> | 
+                        <a href="#" onclick="setOneWeek()">1 Week</a> | 
+                        <a href="#" onclick="setOneMonth()">1 Month</a>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-success" onclick="addKey()">
+                        <i class="fas fa-save"></i> Save Key
+                    </button>
+                    <button class="btn" onclick="hideAddKeyForm()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Keys List -->
+            <div class="card">
+                <h3><i class="fas fa-list"></i> All Activation Keys</h3>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn" onclick="showAll()" style="width: auto; padding: 8px 15px;">All</button>
+                    <button class="btn btn-success" onclick="showActive()" style="width: auto; padding: 8px 15px;">Active Only</button>
+                    <button class="btn btn-danger" onclick="showExpired()" style="width: auto; padding: 8px 15px;">Expired Only</button>
+                </div>
+                <div id="keysList">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <i class="fas fa-key fa-3x" style="margin-bottom: 15px;"></i>
+                        <p>No keys found. Add your first activation key!</p>
+                    </div>
+                </div>
             </div>
             
             <!-- App Settings -->
-            <div class="section">
-                <h2>⚙️ App Settings</h2>
-                <input type="text" id="appTitle" placeholder="App Title">
-                <input type="text" id="appAuthor" placeholder="Author">
-                <textarea id="appExamples" placeholder="Examples (one per line)"></textarea>
-                <button onclick="saveSettings()" class="btn-success">Save Settings</button>
+            <div id="settingsPanel" class="card" style="display: none;">
+                <h3><i class="fas fa-cog"></i> App Settings</h3>
+                <div class="form-group">
+                    <label>App Name</label>
+                    <input type="text" id="appName" placeholder="Bad Boy App">
+                </div>
+                <div class="form-group">
+                    <label>Welcome Message</label>
+                    <input type="text" id="welcomeMessage" placeholder="Welcome to Bad Boy App">
+                </div>
+                <div class="form-group">
+                    <label>Telegram Channel Link</label>
+                    <input type="text" id="telegramLink" placeholder="https://t.me/ansari163">
+                </div>
+                <button class="btn btn-success" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+            
+            <div class="footer">
+                <p><i class="fas fa-server"></i> Firebase Backend | <i class="fas fa-shield-alt"></i> Secure Admin | <i class="fas fa-mobile-alt"></i> Mobile Optimized</p>
+                <p>© 2024 Bad Boy Key Manager | Version 2.0</p>
             </div>
         </div>
-        
-        <!-- Status Message -->
-        <div id="statusMessage" class="status"></div>
     </div>
 
     <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
     <script>
-        // TUMHARA FIREBASE CONFIG - Yeh copy karo
+        // Firebase Configuration - Tumhara config yahan aayega
         const firebaseConfig = {
             apiKey: "AIzaSyAHTsdTtVe-pKnYukLGDuvUGBJ3fIAt7us",
             authDomain: "badboyadmin-eb3e9.firebaseapp.com",
             projectId: "badboyadmin-eb3e9",
             storageBucket: "badboyadmin-eb3e9.appspot.com",
             messagingSenderId: "310183389856",
-            appId: "1:310183389856:web:xxxxxxxxxxxxxx" // Yeh web app ID chahiye
+            appId: "1:310183389856:web:xxxxxxxxxxxxxx"
         };
         
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
         const auth = firebase.auth();
-    </script>
-    
-    <script>
-        // Firebase Auth State
+        const db = firebase.firestore();
+        
+        // Firebase Auth State Listener
         auth.onAuthStateChanged((user) => {
             if (user) {
+                // User is logged in
                 document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('adminDashboard').style.display = 'block';
                 document.getElementById('userEmail').textContent = user.email;
-                fetchData();
+                loadDashboardData();
             } else {
+                // User is logged out
                 document.getElementById('loginSection').style.display = 'block';
-                document.getElementById('adminPanel').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'none';
             }
         });
         
-        // Login
+        // Login Function
         async function loginUser() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showMessage('Please enter email and password', 'error');
+                return;
+            }
+            
+            showMessage('Logging in...', 'success');
             
             try {
                 await auth.signInWithEmailAndPassword(email, password);
@@ -132,138 +412,196 @@
             }
         }
         
-        // Logout
+        // Logout Function
         function logoutUser() {
             auth.signOut();
-            showMessage('Logged out', 'success');
+            showMessage('Logged out successfully', 'success');
         }
         
-        // Fetch Data
-        async function fetchData() {
+        // Load Dashboard Data
+        async function loadDashboardData() {
             try {
-                // Get settings
-                const settingsDoc = await db.collection('settings').doc('appConfig').get();
-                if (settingsDoc.exists) {
-                    const data = settingsDoc.data();
-                    document.getElementById('appTitle').value = data.title || '';
-                    document.getElementById('appAuthor').value = data.author || '';
-                    document.getElementById('appExamples').value = data.examples?.join('\n') || '';
-                }
-                
-                // Get IDs
-                const idsSnapshot = await db.collection('androidIds').get();
-                let valid = 0, expired = 0;
-                let html = '';
-                
-                idsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const isExpired = checkExpiry(data.expiry_date);
-                    if (!isExpired) valid++; else expired++;
-                    
-                    html += `<div style="padding: 10px; margin: 5px; background: ${isExpired ? '#fed7d7' : '#c6f6d5'}">
-                        ${doc.id} - ${data.expiry_date} 
-                        <button onclick="deleteId('${doc.id}')" style="float: right;">❌</button>
-                    </div>`;
+                // Load keys from Firestore
+                const keysSnapshot = await db.collection('androidIds').get();
+                const keys = [];
+                keysSnapshot.forEach(doc => {
+                    keys.push({ id: doc.id, ...doc.data() });
                 });
                 
-                document.getElementById('idList').innerHTML = html;
-                document.getElementById('stats').innerHTML = `
-                    <p>✅ Valid IDs: ${valid}</p>
-                    <p>❌ Expired IDs: ${expired}</p>
-                `;
+                // Update stats
+                updateStats(keys);
+                
+                // Display keys
+                displayKeys(keys);
+                
+                // Load settings
+                const settingsDoc = await db.collection('settings').doc('appConfig').get();
+                if (settingsDoc.exists) {
+                    const settings = settingsDoc.data();
+                    document.getElementById('appName').value = settings.title || '';
+                    document.getElementById('welcomeMessage').value = settings.author || '';
+                    document.getElementById('telegramLink').value = settings.join_telegram || '';
+                }
                 
             } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+                showMessage('Error loading data: ' + error.message, 'error');
             }
         }
         
-        // Add ID
-        async function addId() {
-            const id = document.getElementById('newId').value;
-            const expiry = document.getElementById('newExpiry').value;
+        // Update Statistics
+        function updateStats(keys) {
+            const today = new Date().toLocaleDateString('en-GB');
+            let valid = 0, expired = 0, todayExp = 0;
             
-            if (!id || !expiry) {
-                showMessage('Please fill all fields', 'error');
+            keys.forEach(key => {
+                if (!key.expiry_date) {
+                    expired++;
+                } else if (isExpired(key.expiry_date)) {
+                    expired++;
+                } else {
+                    valid++;
+                    if (key.expiry_date === today) {
+                        todayExp++;
+                    }
+                }
+            });
+            
+            document.getElementById('totalIds').textContent = keys.length;
+            document.getElementById('validIds').textContent = valid;
+            document.getElementById('expiredIds').textContent = expired;
+            document.getElementById('todayExpiry').textContent = todayExp;
+        }
+        
+        // Display Keys
+        function displayKeys(keys) {
+            const keysList = document.getElementById('keysList');
+            
+            if (keys.length === 0) {
+                keysList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <i class="fas fa-key fa-3x" style="margin-bottom: 15px;"></i>
+                        <p>No keys found. Add your first activation key!</p>
+                    </div>
+                `;
                 return;
             }
             
-            try {
-                await db.collection('androidIds').doc(id).set({
-                    expiry_date: expiry,
-                    added_on: new Date().toLocaleDateString('en-GB')
-                });
+            let html = '';
+            keys.forEach(key => {
+                const isExp = !key.expiry_date || isExpired(key.expiry_date);
+                const daysLeft = getDaysLeft(key.expiry_date);
                 
-                showMessage('✅ ID added successfully!', 'success');
-                document.getElementById('newId').value = '';
-                document.getElementById('newExpiry').value = '';
-                fetchData();
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-        
-        // Delete ID
-        async function deleteId(id) {
-            if (!confirm('Delete this ID?')) return;
+                html += `
+                    <div class="id-item ${isExp ? 'expired' : ''}">
+                        <div style="flex: 1;">
+                            <strong>${key.id}</strong><br>
+                            <small>Expiry: ${key.expiry_date || 'No date'}</small>
+                            <span style="margin-left: 10px; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: ${isExp ? '#fed7d7' : '#c6f6d5'}; color: ${isExp ? '#742a2a' : '#22543d'}">
+                                ${isExp ? 'EXPIRED' : `${daysLeft} days left`}
+                            </span>
+                        </div>
+                        <div>
+                            <button onclick="editKey('${key.id}', '${key.expiry_date || ''}')" style="background: #ed8936; color: white; border: none; padding: 8px 12px; border-radius: 5px; margin: 0 5px; cursor: pointer;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteKey('${key.id}')" style="background: #f56565; color: white; border: none; padding: 8px 12px; border-radius: 5px; margin: 0 5px; cursor: pointer;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
             
-            try {
-                await db.collection('androidIds').doc(id).delete();
-                showMessage('✅ ID deleted', 'success');
-                fetchData();
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-        
-        // Save Settings
-        async function saveSettings() {
-            const title = document.getElementById('appTitle').value;
-            const author = document.getElementById('appAuthor').value;
-            const examples = document.getElementById('appExamples').value.split('\n').filter(l => l.trim());
-            
-            try {
-                await db.collection('settings').doc('appConfig').set({
-                    title: title,
-                    author: author,
-                    examples: examples,
-                    alphabet_line: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                    join_telegram: "https://t.me/ansari163",
-                    updated_at: new Date().toISOString()
-                }, { merge: true });
-                
-                showMessage('✅ Settings saved!', 'success');
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
+            keysList.innerHTML = html;
         }
         
         // Helper Functions
-        function showAddId() {
-            document.getElementById('addIdSection').style.display = 'block';
-        }
-        
-        function hideAddId() {
-            document.getElementById('addIdSection').style.display = 'none';
-        }
-        
-        function checkExpiry(dateStr) {
+        function isExpired(dateStr) {
             if (!dateStr) return true;
             const [day, month, year] = dateStr.split('/').map(Number);
             const expiry = new Date(year, month - 1, day);
             return expiry < new Date();
         }
         
-        function showMessage(msg, type) {
-            const div = document.getElementById('statusMessage');
-            div.textContent = msg;
-            div.className = `status ${type}`;
-            div.style.display = 'block';
-            setTimeout(() => div.style.display = 'none', 3000);
+        function getDaysLeft(dateStr) {
+            if (!dateStr) return 0;
+            const [day, month, year] = dateStr.split('/').map(Number);
+            const expiry = new Date(year, month - 1, day);
+            const today = new Date();
+            const diffTime = expiry - today;
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         }
         
-        // Auto-login for testing
+        function showMessage(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // UI Functions
+        function showAddKeyForm() {
+            document.getElementById('addKeyForm').style.display = 'block';
+        }
+        
+        function hideAddKeyForm() {
+            document.getElementById('addKeyForm').style.display = 'none';
+            document.getElementById('newKey').value = '';
+            document.getElementById('newExpiry').value = '';
+        }
+        
+        function showSettings() {
+            document.getElementById('settingsPanel').style.display = 'block';
+        }
+        
+        function refreshData() {
+            loadDashboardData();
+            showMessage('Data refreshed!', 'success');
+        }
+        
+        // Date Presets
+        function setToday() {
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            document.getElementById('newExpiry').value = `${day}/${month}/${year}`;
+        }
+        
+        function setTomorrow() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const day = String(tomorrow.getDate()).padStart(2, '0');
+            const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const year = tomorrow.getFullYear();
+            document.getElementById('newExpiry').value = `${day}/${month}/${year}`;
+        }
+        
+        function setOneWeek() {
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            const day = String(nextWeek.getDate()).padStart(2, '0');
+            const month = String(nextWeek.getMonth() + 1).padStart(2, '0');
+            const year = nextWeek.getFullYear();
+            document.getElementById('newExpiry').value = `${day}/${month}/${year}`;
+        }
+        
+        function setOneMonth() {
+            const nextMonth = new Date();
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            const day = String(nextMonth.getDate()).padStart(2, '0');
+            const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+            const year = nextMonth.getFullYear();
+            document.getElementById('newExpiry').value = `${day}/${month}/${year}`;
+        }
+        
+        // Auto login on page load (for testing)
         window.onload = function() {
-            // Try auto login
+            // Try auto login after 1 second
             setTimeout(() => {
                 if (!auth.currentUser) {
                     document.getElementById('loginEmail').value = 'admin@badboy.com';

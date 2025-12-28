@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bad Boy Firebase Admin</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #667eea; }
+        .section { margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 5px solid #667eea; }
+        button { background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        button:hover { background: #5a67d8; }
+        .btn-success { background: #48bb78; }
+        .btn-danger { background: #f56565; }
+        input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; display: none; }
+        .success { background: #c6f6d5; color: #22543d; }
+        .error { background: #fed7d7; color: #742a2a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Bad Boy Firebase Admin</h1>
+        
+        <!-- Login Section -->
+        <div id="loginSection" class="section">
+            <h2>🔐 Admin Login</h2>
+            <div>
+                <label>Email:</label>
+                <input type="email" id="loginEmail" value="admin@badboy.com" placeholder="Enter email">
+            </div>
+            <div>
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="Admin@1234" placeholder="Enter password">
+            </div>
+            <button onclick="loginUser()" class="btn-success">Login</button>
+        </div>
+        
+        <!-- Admin Panel (Hidden Initially) -->
+        <div id="adminPanel" style="display: none;">
+            <div style="text-align: right;">
+                <span id="userEmail"></span>
+                <button onclick="logoutUser()" class="btn-danger">Logout</button>
+            </div>
+            
+            <!-- Dashboard -->
+            <div class="section">
+                <h2>📊 Dashboard</h2>
+                <div id="stats"></div>
+                <button onclick="fetchData()">Refresh Data</button>
+                <button onclick="showAddId()" class="btn-success">➕ Add New ID</button>
+            </div>
+            
+            <!-- Add ID Form -->
+            <div id="addIdSection" class="section" style="display: none;">
+                <h2>➕ Add Android ID</h2>
+                <input type="text" id="newId" placeholder="Android ID">
+                <input type="text" id="newExpiry" placeholder="DD/MM/YYYY">
+                <button onclick="addId()" class="btn-success">Add ID</button>
+                <button onclick="hideAddId()">Cancel</button>
+            </div>
+            
+            <!-- ID List -->
+            <div class="section">
+                <h2>📋 All IDs</h2>
+                <div id="idList">Loading...</div>
+            </div>
+            
+            <!-- App Settings -->
+            <div class="section">
+                <h2>⚙️ App Settings</h2>
+                <input type="text" id="appTitle" placeholder="App Title">
+                <input type="text" id="appAuthor" placeholder="Author">
+                <textarea id="appExamples" placeholder="Examples (one per line)"></textarea>
+                <button onclick="saveSettings()" class="btn-success">Save Settings</button>
+            </div>
+        </div>
+        
+        <!-- Status Message -->
+        <div id="statusMessage" class="status"></div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // TUMHARA FIREBASE CONFIG - Yeh copy karo
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHTsdTtVe-pKnYukLGDuvUGBJ3fIAt7us",
+            authDomain: "badboyadmin-eb3e9.firebaseapp.com",
+            projectId: "badboyadmin-eb3e9",
+            storageBucket: "badboyadmin-eb3e9.appspot.com",
+            messagingSenderId: "310183389856",
+            appId: "1:310183389856:web:xxxxxxxxxxxxxx" // Yeh web app ID chahiye
+        };
+        
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+    </script>
+    
+    <script>
+        // Firebase Auth State
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('userEmail').textContent = user.email;
+                fetchData();
+            } else {
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        });
+        
+        // Login
+        async function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                showMessage('✅ Login successful!', 'success');
+            } catch (error) {
+                showMessage('❌ Login failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Logout
+        function logoutUser() {
+            auth.signOut();
+            showMessage('Logged out', 'success');
+        }
+        
+        // Fetch Data
+        async function fetchData() {
+            try {
+                // Get settings
+                const settingsDoc = await db.collection('settings').doc('appConfig').get();
+                if (settingsDoc.exists) {
+                    const data = settingsDoc.data();
+                    document.getElementById('appTitle').value = data.title || '';
+                    document.getElementById('appAuthor').value = data.author || '';
+                    document.getElementById('appExamples').value = data.examples?.join('\n') || '';
+                }
+                
+                // Get IDs
+                const idsSnapshot = await db.collection('androidIds').get();
+                let valid = 0, expired = 0;
+                let html = '';
+                
+                idsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const isExpired = checkExpiry(data.expiry_date);
+                    if (!isExpired) valid++; else expired++;
+                    
+                    html += `<div style="padding: 10px; margin: 5px; background: ${isExpired ? '#fed7d7' : '#c6f6d5'}">
+                        ${doc.id} - ${data.expiry_date} 
+                        <button onclick="deleteId('${doc.id}')" style="float: right;">❌</button>
+                    </div>`;
+                });
+                
+                document.getElementById('idList').innerHTML = html;
+                document.getElementById('stats').innerHTML = `
+                    <p>✅ Valid IDs: ${valid}</p>
+                    <p>❌ Expired IDs: ${expired}</p>
+                `;
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Add ID
+        async function addId() {
+            const id = document.getElementById('newId').value;
+            const expiry = document.getElementById('newExpiry').value;
+            
+            if (!id || !expiry) {
+                showMessage('Please fill all fields', 'error');
+                return;
+            }
+            
+            try {
+                await db.collection('androidIds').doc(id).set({
+                    expiry_date: expiry,
+                    added_on: new Date().toLocaleDateString('en-GB')
+                });
+                
+                showMessage('✅ ID added successfully!', 'success');
+                document.getElementById('newId').value = '';
+                document.getElementById('newExpiry').value = '';
+                fetchData();
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Delete ID
+        async function deleteId(id) {
+            if (!confirm('Delete this ID?')) return;
+            
+            try {
+                await db.collection('androidIds').doc(id).delete();
+                showMessage('✅ ID deleted', 'success');
+                fetchData();
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Save Settings
+        async function saveSettings() {
+            const title = document.getElementById('appTitle').value;
+            const author = document.getElementById('appAuthor').value;
+            const examples = document.getElementById('appExamples').value.split('\n').filter(l => l.trim());
+            
+            try {
+                await db.collection('settings').doc('appConfig').set({
+                    title: title,
+                    author: author,
+                    examples: examples,
+                    alphabet_line: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    join_telegram: "https://t.me/ansari163",
+                    updated_at: new Date().toISOString()
+                }, { merge: true });
+                
+                showMessage('✅ Settings saved!', 'success');
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Helper Functions
+        function showAddId() {
+            document.getElementById('addIdSection').style.display = 'block';
+        }
+        
+        function hideAddId() {
+            document.getElementById('addIdSection').style.display = 'none';
+        }
+        
+        function checkExpiry(dateStr) {
+            if (!dateStr) return true;
+            const [day, month, year] = dateStr.split('/').map(Number);
+            const expiry = new Date(year, month - 1, day);
+            return expiry < new Date();
+        }
+        
+        function showMessage(msg, type) {
+            const div = document.getElementById('statusMessage');
+            div.textContent = msg;
+            div.className = `status ${type}`;
+            div.style.display = 'block';
+            setTimeout(() => div.style.display = 'none', 3000);
+        }
+        
+        // Auto-login for testing
+        window.onload = function() {
+            // Try auto login
+            setTimeout(() => {
+                if (!auth.currentUser) {
+                    document.getElementById('loginEmail').value = 'admin@badboy.com';
+                    document.getElementById('loginPassword').value = 'Admin@1234';
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
